@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>वैज्ञानिक कैलकुलेटर</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .calculator {
+            background-color: #2c3e50;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 400px;
+            overflow: hidden;
+            color: white;
+        }
+
+        .display {
+            background-color: #34495e;
+            padding: 20px;
+            text-align: right;
+            border-bottom: 2px solid #3d566e;
+            min-height: 120px;
+        }
+
+        .display-expression {
+            font-size: 18px;
+            min-height: 27px;
+            color: #bdc3c7;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+        }
+
+        .display-result {
+            font-size: 32px;
+            font-weight: bold;
+            min-height: 40px;
+            color: #ecf0f1;
+            word-wrap: break-word;
+        }
+
+        .memory-indicator {
+            font-size: 12px;
+            color: #3498db;
+            margin-top: 5px;
+            text-align: left;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            padding: 20px;
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 15px 0;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: white;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .number {
+            background-color: #34495e;
+        }
+
+        .number:hover {
+            background-color: #3d566e;
+        }
+
+        .operator {
+            background-color: #e74c3c;
+        }
+
+        .operator:hover {
+            background-color: #ec7063;
+        }
+
+        .function {
+            background-color: #9b59b6;
+        }
+
+        .function:hover {
+            background-color: #af7ac5;
+        }
+
+        .equals {
+            background-color: #2ecc71;
+            grid-column: span 2;
+        }
+
+        .equals:hover {
+            background-color: #58d68d;
+        }
+
+        .clear {
+            background-color: #e67e22;
+        }
+
+        .clear:hover {
+            background-color: #eb984e;
+        }
+
+        .memory {
+            background-color: #3498db;
+        }
+
+        .memory:hover {
+            background-color: #5dade2;
+        }
+
+        .toggle {
+            background-color: #f1c40f;
+            color: #2c3e50;
+        }
+
+        .toggle:hover {
+            background-color: #f4d03f;
+        }
+
+        .backspace {
+            background-color: #e74c3c;
+        }
+
+        .backspace:hover {
+            background-color: #ec7063;
+        }
+
+        .mode-indicator {
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            background-color: #34495e;
+            border-top: 1px solid #3d566e;
+        }
+
+        .error {
+            color: #e74c3c;
+        }
+
+        .result-history {
+            font-size: 14px;
+            color: #7f8c8d;
+            text-align: left;
+            border-top: 1px solid #3d566e;
+            padding-top: 8px;
+            max-height: 60px;
+            overflow-y: auto;
+        }
+
+        .result-history div {
+            margin-bottom: 3px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .result-history div:hover {
+            background-color: #3d566e;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <div class="display-expression" id="expression">0</div>
+            <div class="display-result" id="result">0</div>
+            <div class="result-history" id="resultHistory"></div>
+            <div class="memory-indicator" id="memory-indicator"></div>
+        </div>
+        <div class="controls">
+            <!-- पहली पंक्ति -->
+            <button class="toggle" onclick="toggleAngleMode()">DEG/RAD</button>
+            <button class="memory" onclick="memoryClear()">MC</button>
+            <button class="memory" onclick="memoryRecall()">MR</button>
+            <button class="memory" onclick="memoryAdd()">M+</button>
+            <button class="memory" onclick="memorySubtract()">M-</button>
+            
+            <!-- दूसरी पंक्ति -->
+            <button class="function" onclick="addToExpression('(')">(</button>
+            <button class="function" onclick="addToExpression(')')">)</button>
+            <button class="function" onclick="addConstant('π')">π</button>
+            <button class="function" onclick="addConstant('e')">e</button>
+            <button class="backspace" onclick="backspace()">⌫</button>
+            
+            <!-- तीसरी पंक्ति -->
+            <button class="function" onclick="addFunction('sin(')">sin</button>
+            <button class="function" onclick="addFunction('cos(')">cos</button>
+            <button class="function" onclick="addFunction('tan(')">tan</button>
+            <button class="function" onclick="addToExpression('^')">x^y</button>
+            <button class="function" onclick="addSquareRoot()">√</button>
+            
+            <!-- चौथी पंक्ति -->
+            <button class="function" onclick="addFunction('log(')">log</button>
+            <button class="function" onclick="addFunction('ln(')">ln</button>
+            <button class="function" onclick="addToExpression('!')">x!</button>
+            <button class="function" onclick="addToExpression('%')">%</button>
+            <button class="clear" onclick="clearAll()">C</button>
+            
+            <!-- पाँचवीं पंक्ति -->
+            <button class="number" onclick="addToExpression('7')">7</button>
+            <button class="number" onclick="addToExpression('8')">8</button>
+            <button class="number" onclick="addToExpression('9')">9</button>
+            <button class="operator" onclick="addToExpression('/')">÷</button>
+            <button class="function" onclick="addFunction('10^(')">10^x</button>
+            
+            <!-- छठी पंक्ति -->
+            <button class="number" onclick="addToExpression('4')">4</button>
+            <button class="number" onclick="addToExpression('5')">5</button>
+            <button class="number" onclick="addToExpression('6')">6</button>
+            <button class="operator" onclick="addToExpression('*')">×</button>
+            <button class="function" onclick="addFunction('1/(')">1/x</button>
+            
+            <!-- सातवीं पंक्ति -->
+            <button class="number" onclick="addToExpression('1')">1</button>
+            <button class="number" onclick="addToExpression('2')">2</button>
+            <button class="number" onclick="addToExpression('3')">3</button>
+            <button class="operator" onclick="addToExpression('-')">-</button>
+            <button class="function" onclick="addToExpression('^2')">x²</button>
+            
+            <!-- आठवीं पंक्ति -->
+            <button class="number" onclick="addToExpression('0')">0</button>
+            <button class="number" onclick="addToExpression('.')">.</button>
+            <button class="equals" onclick="calculate()">=</button>
+            <button class="operator" onclick="addToExpression('+')">+</button>
+        </div>
+        <div class="mode-indicator" id="mode-indicator">मोड: DEG</div>
+    </div>
+
+    <script>
+        let expression = '0';
+        let result = '0';
+        let memory = 0;
+        let angleMode = 'DEG';
+        let lastResult = '0';
+        let resultHistory = [];
+
+        const expressionElement = document.getElementById('expression');
+        const resultElement = document.getElementById('result');
+        const memoryIndicator = document.getElementById('memory-indicator');
+        const modeIndicator = document.getElementById('mode-indicator');
+        const resultHistoryElement = document.getElementById('resultHistory');
+
+        function updateDisplay() {
+            expressionElement.textContent = expression;
+            resultElement.textContent = result;
+            memoryIndicator.textContent = memory !== 0 ? `M: ${memory}` : '';
+            modeIndicator.textContent = `मोड: ${angleMode}`;
+            
+            // Update result history
+            updateResultHistory();
+            
+            if (result === 'Error') {
+                resultElement.classList.add('error');
+            } else {
+                resultElement.classList.remove('error');
+            }
+        }
+
+        function updateResultHistory() {
+            // Show last 3 results
+            const recentResults = resultHistory.slice(-3);
+            resultHistoryElement.innerHTML = recentResults.map(item => 
+                `<div onclick="useResultInExpression('${item}')">${item}</div>`
+            ).join('');
+        }
+
+        function useResultInExpression(resultValue) {
+            if (expression === '0') {
+                expression = resultValue;
+            } else {
+                expression += resultValue;
+            }
+            updateDisplay();
+        }
+
+        function addToExpression(value) {
+            if (expression === '0' && value !== '.') {
+                expression = value;
+            } else {
+                expression += value;
+            }
+            updateDisplay();
+        }
+
+        function addFunction(func) {
+            if (expression === '0') {
+                expression = func;
+            } else {
+                expression += func;
+            }
+            updateDisplay();
+        }
+
+        function addSquareRoot() {
+            // असली कैलकुलेटर की तरह - सीधे √ लगाएं
+            if (expression === '0') {
+                expression = '√';
+            } else {
+                expression += '√';
+            }
+            updateDisplay();
+        }
+
+        function addConstant(constant) {
+            if (expression === '0') {
+                expression = constant;
+            } else {
+                expression += constant;
+            }
+            updateDisplay();
+        }
+
+        function clearAll() {
+            expression = '0';
+            result = '0';
+            updateDisplay();
+        }
+
+        function backspace() {
+            if (expression.length > 1) {
+                expression = expression.slice(0, -1);
+            } else {
+                expression = '0';
+            }
+            updateDisplay();
+        }
+
+        function toggleAngleMode() {
+            angleMode = angleMode === 'DEG' ? 'RAD' : 'DEG';
+            updateDisplay();
+        }
+
+        // Memory functions
+        function memoryClear() {
+            memory = 0;
+            updateDisplay();
+        }
+
+        function memoryRecall() {
+            if (expression === '0') {
+                expression = memory.toString();
+            } else {
+                expression += memory.toString();
+            }
+            updateDisplay();
+        }
+
+        function memoryAdd() {
+            try {
+                const currentValue = evaluateExpression(expression);
+                memory += currentValue;
+                updateDisplay();
+            } catch (error) {
+                result = 'Error';
+                updateDisplay();
+            }
+        }
+
+        function memorySubtract() {
+            try {
+                const currentValue = evaluateExpression(expression);
+                memory -= currentValue;
+                updateDisplay();
+            } catch (error) {
+                result = 'Error';
+                updateDisplay();
+            }
+        }
+
+        // Calculate function
+        function calculate() {
+            try {
+                const calculationResult = evaluateExpression(expression);
+                result = calculationResult;
+                
+                // Store result for further calculations
+                lastResult = result;
+                
+                // Add to result history
+                if (result !== 'Error') {
+                    resultHistory.push(result.toString());
+                }
+                
+                // Keep expression as result for further operations
+                expression = result.toString();
+                
+                updateDisplay();
+                
+            } catch (error) {
+                result = 'Error';
+                updateDisplay();
+            }
+        }
+
+        function evaluateExpression(expr) {
+            if (!expr || expr === '0') return 0;
+            
+            try {
+                // Step 1: Process square roots without parentheses (like real calculator)
+                let processedExpr = processSquareRootWithoutParentheses(expr);
+                
+                // Step 2: Replace constants
+                processedExpr = processedExpr.replace(/π/g, Math.PI.toString());
+                processedExpr = processedExpr.replace(/e/g, Math.E.toString());
+                
+                // Step 3: Process functions with parentheses
+                processedExpr = processFunctions(processedExpr);
+                
+                // Step 4: Process other operations
+                processedExpr = processOtherOperations(processedExpr);
+                
+                // Step 5: Add implicit multiplication
+                processedExpr = addImplicitMultiplication(processedExpr);
+                
+                // Step 6: Evaluate
+                const result = Function(`"use strict"; return (${processedExpr})`)();
+                
+                return Number.isFinite(result) ? parseFloat(result.toFixed(10)) : 'Error';
+            } catch (error) {
+                throw new Error('Calculation error');
+            }
+        }
+
+        function processSquareRootWithoutParentheses(expr) {
+            let result = '';
+            let i = 0;
+            
+            while (i < expr.length) {
+                if (expr[i] === '√') {
+                    // √ के बाद का number निकालें (बिना parentheses के)
+                    let j = i + 1;
+                    let numberStr = '';
+                    
+                    // Collect numbers and decimal point
+                    while (j < expr.length && (isDigit(expr[j]) || expr[j] === '.')) {
+                        numberStr += expr[j];
+                        j++;
+                    }
+                    
+                    if (numberStr) {
+                        result += `Math.sqrt(${numberStr})`;
+                    } else {
+                        // If no number after √, assume √(
+                        result += 'Math.sqrt(';
+                    }
+                    i = j;
+                } else {
+                    result += expr[i];
+                    i++;
+                }
+            }
+            
+            return result;
+        }
+
+        function processFunctions(expr) {
+            // Trigonometric functions
+            const trigFuncs = ['sin', 'cos', 'tan'];
+            for (const func of trigFuncs) {
+                const regex = new RegExp(`${func}\\(([^)]+)\\)`, 'g');
+                expr = expr.replace(regex, (match, angle) => {
+                    if (angleMode === 'DEG') {
+                        return `Math.${func}(${angle} * Math.PI / 180)`;
+                    } else {
+                        return `Math.${func}(${angle})`;
+                    }
+                });
+            }
+            
+            // Log functions
+            expr = expr.replace(/log\(([^)]+)\)/g, 'Math.log10($1)');
+            expr = expr.replace(/ln\(([^)]+)\)/g, 'Math.log($1)');
+            
+            // 10^x
+            expr = expr.replace(/10\^\(([^)]+)\)/g, 'Math.pow(10, $1)');
+            
+            // 1/x
+            expr = expr.replace(/1\/\(([^)]+)\)/g, '(1 / $1)');
+            
+            return expr;
+        }
+
+        function processOtherOperations(expr) {
+            // Factorial
+            expr = expr.replace(/(\d+(?:\.\d+)?)!/g, (match, num) => {
+                return factorial(parseFloat(num)).toString();
+            });
+            
+            // Percentage
+            expr = expr.replace(/(\d+(?:\.\d+)?)%/g, '($1 / 100)');
+            
+            // Power operations
+            expr = expr.replace(/(\d+(?:\.\d+)?)\^(\d+(?:\.\d+)?)/g, (match, base, exp) => {
+                return `Math.pow(${base}, ${exp})`;
+            });
+            
+            // x^2
+            expr = expr.replace(/(\d+(?:\.\d+)?)\^2/g, (match, num) => {
+                return `Math.pow(${num}, 2)`;
+            });
+            
+            return expr;
+        }
+
+        function addImplicitMultiplication(expr) {
+            // Add multiplication between number and function/constant
+            expr = expr.replace(/(\d)(\()/g, '$1*$2');
+            expr = expr.replace(/(\))(\d)/g, '$1*$2');
+            expr = expr.replace(/(\d)([a-zA-Z])/g, '$1*$2');
+            return expr;
+        }
+
+        function isDigit(char) {
+            return char >= '0' && char <= '9';
+        }
+
+        function factorial(n) {
+            if (n < 0) return NaN;
+            if (n === 0 || n === 1) return 1;
+            if (n > 100) return Infinity;
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            
+            if (key >= '0' && key <= '9') {
+                addToExpression(key);
+            } else if (key === '.') {
+                addToExpression('.');
+            } else if (key === '+') {
+                addToExpression('+');
+            } else if (key === '-') {
+                addToExpression('-');
+            } else if (key === '*') {
+                addToExpression('*');
+            } else if (key === '/') {
+                event.preventDefault();
+                addToExpression('/');
+            } else if (key === 'Enter' || key === '=') {
+                event.preventDefault();
+                calculate();
+            } else if (key === 'Escape') {
+                clearAll();
+            } else if (key === 'Backspace') {
+                backspace();
+            } else if (key === '(') {
+                addToExpression('(');
+            } else if (key === ')') {
+                addToExpression(')');
+            } else if (key === '^') {
+                addToExpression('^');
+            } else if (key === '!') {
+                addToExpression('!');
+            }
+        });
+
+        // Initialize display
+        updateDisplay();
+
+        // Test function
+        function testExpressions() {
+            console.log("Testing calculator expressions:");
+            const tests = [
+                '78√90',
+                '63√90',
+                '√90',
+                '5!',
+                'sin(30)',
+                '10^(2)',
+                '2^3',
+                '50%'
+            ];
+            
+            tests.forEach(test => {
+                try {
+                    const result = evaluateExpression(test);
+                    console.log(`${test} = ${result}`);
+                } catch (e) {
+                    console.log(`${test} = Error`);
+                }
+            });
+        }
+
+        // Run tests after page load
+        setTimeout(testExpressions, 1000);
+    </script>
+</body>
+</html>
